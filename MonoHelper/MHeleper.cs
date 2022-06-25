@@ -25,58 +25,6 @@ namespace MonoHelper
             }
         }
 
-        public static Vector2 FlipY(this Vector2 vector)
-        {
-            vector.Y = 1080 - vector.Y;
-            return vector;
-        }
-
-        public static Vector2 FlipX(this Vector2 vector)
-        {
-            vector.Y = 1920 - vector.Y;
-            return vector;
-        }
-
-        /// <summary>
-        /// Converts from degrees to radians
-        /// </summary>
-        public static double ToRadians(this double val)
-        {
-            return (Math.PI / 180) * val;
-        }
-
-        /// <summary>
-        /// Converts from degrees to radians
-        /// </summary>
-        public static float ToRadians(this float val)
-        {
-            return (float)(Math.PI / 180) * val;
-        }
-
-        /// Converts from degrees to radians
-        /// </summary>
-        public static float ToRadians(this int val)
-        {
-            return (float)(Math.PI / 180) * val;
-        }
-
-
-        /// <summary>
-        /// Converts from radians to degrees
-        /// </summary>
-        public static float ToDegrees(this float val)
-        {
-            return val/(float)Math.PI*180f;
-        }
-
-        /// <summary>
-        /// Converts from radians to degrees
-        /// </summary>
-        public static float ToDegrees(this int val)
-        {
-            return val / (float)Math.PI * 180f;
-        }
-
         /// <summary>
         /// Creates circle with smooth borders
         /// </summary>
@@ -404,42 +352,6 @@ namespace MonoHelper
             return texture;
         }
 
-
-        /// <summary>
-        /// Converts List of Vector2 to List of System.Drawing.PointF
-        /// </summary>
-        /// <param name="points"></param>
-        /// <returns></returns>
-        public static List<System.Drawing.PointF> ToPoints(this List<Vector2> points)
-        {
-            List<System.Drawing.PointF> res = new List<System.Drawing.PointF>();
-            foreach (var point in points)
-            {
-                res.Add(new System.Drawing.PointF(point.X, point.Y));
-            }
-            return res;
-        }
-
-        public static Vector2 ToVector(this System.Drawing.PointF point)
-        {
-            return new Vector2(point.X, point.Y);
-        }
-
-        public static System.Drawing.PointF ToPointF(this Vector2 vector)
-        {
-            return new System.Drawing.PointF(vector.X, vector.Y);
-        }
-
-        /// <summary>
-        /// Converts Color to System.Drawing.Color
-        /// </summary>
-        /// <param name="color"></param>
-        /// <returns></returns>
-        public static System.Drawing.Color ToColor(this Color color)
-        {
-            return System.Drawing.Color.FromArgb(color.A, color.R, color.G, color.B);
-        }
-
         static public Texture2D CreateCurve(GraphicsDevice graphics, int width, int height, List<Vector2> points, Color color)
         {
             System.Drawing.Image image = new System.Drawing.Bitmap(width, height);
@@ -449,7 +361,7 @@ namespace MonoHelper
             using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(image))
             {
                 // draw in bmp using g
-                g.DrawCurve(new System.Drawing.Pen(color.ToColor()), points.ToPoints().ToArray());
+                g.DrawCurve(new System.Drawing.Pen(color.ToColor()), points.ToPointFs().ToArray());
                 using (System.Drawing.Bitmap bmp = new System.Drawing.Bitmap(image))
                 {
                     for (int x = 0; x < width; x++)
@@ -473,6 +385,11 @@ namespace MonoHelper
         public static bool InRect(this Vector2 pos, int width, int height)
         {
             return ((pos.X >= 0) && (pos.Y >= 0) && (pos.X < width) && (pos.Y < height));
+        }
+
+        public static bool InRect(this Vector2 pos, Vector2 BiggerThan, Vector2 SmallerThan)
+        {
+            return ((pos.X >= BiggerThan.X) && (pos.Y >= BiggerThan.Y) && (pos.X < SmallerThan.X) && (pos.Y < SmallerThan.Y));
         }
 
         public static bool InRect(this int pos, int width, int height)
@@ -541,6 +458,7 @@ namespace MonoHelper
         public static List<List<bool>> ToBoolMatrix(this Texture2D texture, List<Color> true_data)
         {
             Color[] cd = new Color[(uint)(texture.Width * texture.Height)];
+            texture.GetData(cd);
             List<List<bool>> res = new List<List<bool>>();
             for (int x = 0; x < texture.Width; x++)
             {

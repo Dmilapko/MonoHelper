@@ -6,15 +6,10 @@ using System.Threading.Tasks;
 
 namespace MonoHelper
 {
-    public class PointD
+    
+    public struct PointD
     {
-        public double X = 0, Y = 0;
-
-        public PointD()
-        {
-
-        }
-
+        public double X, Y;
         public PointD(double _X, double _Y)
         {
             X = _X;
@@ -39,6 +34,22 @@ namespace MonoHelper
         public static PointD operator *(double multiplier, PointD point)
         {
             return new PointD(point.X * multiplier, point.Y * multiplier);
+        }
+
+        public static PointD operator /(PointD point, double divider)
+        {
+            return new PointD(point.X / divider, point.Y / divider);
+        }
+
+        public void Round()
+        {
+            X = Math.Round(X);
+            Y = Math.Round(Y);
+        }
+
+        public double Length()
+        {
+            return Math.Sqrt(X * X + Y * Y);
         }
 
         public PointD Turn(double angle)

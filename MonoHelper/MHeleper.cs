@@ -4,11 +4,40 @@ using Microsoft.Xna.Framework.Input;
 using System.IO;
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
+using System.Xml;
+using System.Xml.Serialization;
+using System.Linq;
 
 namespace MonoHelper
 {
     public static class MHeleper
     {
+        public static bool In<T>(this T obj, params T[] args)
+        {
+            return args.Contains(obj);
+        }
+
+        public static int GetSign(this int number)
+        {
+            if (number == 0) return 0;
+            if (number < 0) return -1;
+            else return 1;
+        }
+        public static int GetSign(this double number)
+        {
+            if (number == 0) return 0;
+            if (number < 0) return -1;
+            else return 1;
+        }
+        public static int GetSign(this float number)
+        {
+            if (number == 0) return 0;
+            if (number < 0) return -1;
+            else return 1;
+        }
+
         public static string PutZeros(string StrAfterZeros, int SizeOfOutputStr)
         {
             while (StrAfterZeros.Length < SizeOfOutputStr) StrAfterZeros = "0" + StrAfterZeros;
@@ -25,8 +54,17 @@ namespace MonoHelper
             }
         }
 
+        public static Texture2D Clone(this Texture2D texture, GraphicsDevice graphics)
+        {
+            Texture2D res = new Texture2D(graphics, texture.Width, texture.Height);
+            Color[] cd = new Color[texture.Width * texture.Height];
+            texture.GetData(cd);
+            res.SetData(cd);
+            return res;
+        }
+
         /// <summary>
-        /// Creates circle with smooth borders
+        /// Creates filled circle with smooth borders
         /// </summary>
         public static Texture2D CreateCircle(GraphicsDevice graphicsDevice, int radius, Color color)
         {
@@ -57,11 +95,10 @@ namespace MonoHelper
             texture.SetData(colorData);
             return texture;
         }
-
         /// <summary>
-        /// Creates circle with smooth borders
+        /// Creates filled circle with smooth borders
         /// </summary>
-        private static Color[] CreateCircle(this Color[] colorData, int radius, Color color)
+        public static Color[] CreateCircle(this Color[] colorData, int radius, Color color)
         {
             int initsize = (int)Math.Sqrt(colorData.Length) / 2;
             for (int x = 0; x < radius * 2; x++)
@@ -86,6 +123,26 @@ namespace MonoHelper
             }
 
             return colorData;
+        }
+
+        public static Texture2D DrawCircle(this Texture2D texture, Vector2 center, double radius, double width, Color color)
+        {
+            Color[] colorData = new Color[texture.Width * texture.Height];
+            texture.GetData(colorData);
+            for (int x = 0; x < texture.Width; x++)
+            {
+                for (int y = 0; y < texture.Height; y++)
+                {
+                    double dist = Math.Abs(Math.Sqrt(Math.Pow(center.X - x, 2) + Math.Pow(center.Y - y, 2)) - radius);
+                    if (dist <= width) 
+                    {
+                        //                        colorData[x + y * texture.Width] = MixTwoColorsNA(colorData[x + y * texture.Width], new Color(color, (float)Math.Max(1d, width - dist)));
+                        colorData[x + y * texture.Width] = new Color(color, (float)Math.Min(1d, width - dist));
+                    }
+                }
+            }
+            texture.SetData(colorData);
+            return texture;
         }
         /// <summary>
         /// Creates circle with outline
@@ -382,6 +439,34 @@ namespace MonoHelper
             return res;
         }
 
+        public static List<int> CreateCurve(int width, int height, List<Vector2> points)
+        {
+            List<int> res = new List<int>();
+            System.Drawing.Image image = new System.Drawing.Bitmap(width, height);
+            using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(image))
+            {
+                // draw in bmp using g
+                g.DrawCurve(new System.Drawing.Pen(System.Drawing.Color.Red), points.ToPointFs().ToArray());
+                using (System.Drawing.Bitmap bmp = new System.Drawing.Bitmap(image))
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        int y;
+                        for (y = 0; y < height; y++)
+                        {
+                            if (y == 376)
+                            {
+
+                            }
+                            if (bmp.GetPixel(x, y).R == 255) break;
+                        }
+                        res.Add(y);
+                    }
+                }
+            }
+            return res;
+        }
+
         public static bool InRect(this Vector2 pos, int width, int height)
         {
             return ((pos.X >= 0) && (pos.Y >= 0) && (pos.X < width) && (pos.Y < height));
@@ -398,7 +483,7 @@ namespace MonoHelper
             return ((x >= 0) && (y >= 0) && (x < width) && (y < height));
         }
 
-        public static Texture2D Fill(this Texture2D texture, Vector2 position, Color color_from, Color color_to)
+        public static void Fill(this Texture2D texture, Vector2 position, Color color_from, Color color_to)
         {
             Color[] data = new Color[texture.Width * texture.Height];
             texture.GetData(data);
@@ -424,35 +509,45 @@ namespace MonoHelper
                 target = next_target;
             }
             texture.SetData(data);
-            return texture;
         }
 
-        public static Texture2D FillNot(this Texture2D texture, Vector2 position, Color color_notfill, Color color_to)
+        public static void Fill(this Texture2D texture, Color color_to)
         {
             Color[] data = new Color[texture.Width * texture.Height];
             texture.GetData(data);
-            HashSet<Vector2> target = new HashSet<Vector2>();
-            target.Add(position);
+            for (int i = 0; i < texture.Width * texture.Height; i++)
+            {
+                data[i] = color_to;
+            }
+            texture.SetData(data);
+        }
+
+        public static void FillNot(this Texture2D texture, Vector2 position, Color color_notfill, Color color_to)
+        {
+            Color[] data = new Color[texture.Width * texture.Height];
+            texture.GetData(data);
+            List<int> target = new List<int>();
+            target.Add((int)(position.Y * texture.Width + position.X));
             while (target.Count != 0)
             {
-                HashSet<Vector2> next_target = new HashSet<Vector2>();
-                foreach (var pos in target)
+                List<int> next_target = new List<int>();
+                foreach (int pos in target)
                 {
-                    data[(int)(pos.Y * texture.Width + pos.X)] = color_to;
                     for (int i = 0; i < 4; i++)
                     {
-                        Vector2 npos = new Vector2((-1 + i) % 2 + pos.X, (i % 2) + pos.Y);
-                        if (i == 3) npos.Y -= 2;
-                        if (npos.InRect(texture.Width, texture.Height) && (data[(int)(npos.Y * texture.Width + npos.X)] != color_notfill))
+                        Vector2 vnpos = new Vector2((-1 + i) % 2 + (pos % texture.Width), (i % 2) + (pos / texture.Width));
+                        if (i == 3) vnpos.Y -= 2;
+                        int npos = (int)(vnpos.Y * texture.Width + vnpos.X);
+                        if (vnpos.InRect(texture.Width, texture.Height) && (data[npos] != color_notfill) && (data[npos] != color_to))
                         {
                             next_target.Add(npos);
+                            data[npos] = color_to;
                         }
                     }
                 }
                 target = next_target;
             }
             texture.SetData(data);
-            return texture;
         }
 
         public static List<List<bool>> ToBoolMatrix(this Texture2D texture, List<Color> true_data)

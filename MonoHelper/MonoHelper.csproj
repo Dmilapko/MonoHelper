@@ -45,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Pair.cs" />
     <Compile Include="PointD.cs" />
     <Compile Include="Conversions.cs" />
     <Compile Include="MHeleper.cs" />

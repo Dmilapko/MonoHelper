@@ -14,7 +14,7 @@ namespace MonoHelper
             return new System.Drawing.PointF(operand1.X + operand2.X, operand1.Y + operand2.Y);
         }
 
-        public static Vector2 ToVector(this PointD point)
+        public static Vector2 ToVector2(this PointD point)
         {
             return new Vector2((float)point.X, (float)point.Y);
         }

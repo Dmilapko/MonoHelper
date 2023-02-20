@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace MonoHelper
 {
@@ -39,6 +41,11 @@ namespace MonoHelper
         public static PointD operator /(PointD point, double divider)
         {
             return new PointD(point.X / divider, point.Y / divider);
+        }
+
+        public double Angle()
+        {
+            return Math.Atan2(X, Y);
         }
 
         public void Round()

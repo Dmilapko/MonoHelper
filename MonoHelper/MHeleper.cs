@@ -9,11 +9,56 @@ using System.Runtime.Serialization;
 using System.Xml;
 using System.Xml.Serialization;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 
 namespace MonoHelper
 {
     public static class MHeleper
     {
+        /// <summary>
+        /// Writes the given object instance to a binary file.
+        /// <para>Object type (and all child types) must be decorated with the [Serializable] attribute.</para>
+        /// <para>To prevent a variable from being serialized, decorate it with the [NonSerialized] attribute; cannot be applied to properties.</para>
+        /// </summary>
+        /// <typeparam name="T">The type of object being written to the binary file.</typeparam>
+        /// <param name="filePath">The file path to write the object instance to.</param>
+        /// <param name="objectToWrite">The object instance to write to the binary file.</param>
+        /// <param name="append">If false the file will be overwritten if it already exists. If true the contents will be appended to the file.</param>
+        public static void WriteToBinaryFile<T>(string filePath, T objectToWrite, bool append = false)
+        {
+            using (Stream stream = File.Open(filePath, append ? FileMode.Append : FileMode.Create))
+            {
+                var binaryFormatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+                binaryFormatter.Serialize(stream, objectToWrite);
+            }
+        }
+
+        /// <summary>
+        /// Reads an object instance from a binary file.
+        /// </summary>
+        /// <typeparam name="T">The type of object to read from the binary file.</typeparam>
+        /// <param name="filePath">The file path to read the object instance from.</param>
+        /// <returns>Returns a new instance of the object read from the binary file.</returns>
+        public static T ReadFromBinaryFile<T>(string filePath)
+        {
+            using (Stream stream = File.Open(filePath, FileMode.Open))
+            {
+                var binaryFormatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+                return (T)binaryFormatter.Deserialize(stream);
+            }
+        }
+
+        public static T CreateDeepCopy<T>(T objectToCopy)
+        {
+            using (var ms = new MemoryStream())
+            {
+                IFormatter formatter = new BinaryFormatter();
+                formatter.Serialize(ms, objectToCopy);
+                ms.Seek(0, SeekOrigin.Begin);
+                return (T)formatter.Deserialize(ms);
+            }
+        }
+
         public static bool In<T>(this T obj, params T[] args)
         {
             return args.Contains(obj);
@@ -57,6 +102,44 @@ namespace MonoHelper
                 return random.NextDouble();
             }
         }
+
+        public static int RandomInt(int left, int right)
+        {
+            lock (syncLock)
+            { // synchronize
+                return random.Next(left, right);
+            }
+        }
+
+        /// <summary>
+        /// Return random index depending on probability of each
+        /// </summary>
+        /// <param name="probabilities"></param>
+        /// <returns></returns>
+        public static int RandomElement(List<double> probabilities)
+        {
+            lock (syncLock)
+            { // synchronize
+                for (int i = 1; i < probabilities.Count; i++)
+                {
+                    probabilities[i] += probabilities[i - 1];
+                }
+                double r =  random.NextDouble() * probabilities.Last();
+                for (int i = 0; i < probabilities.Count; i++)
+                {
+                    if (r < probabilities[i]) return i;
+                }
+                return -1;
+            }
+        }
+
+        public static int RandomRound(double d)
+        {
+            int init_d = (int)d;
+            if (RandomDouble() > (d - init_d)) return init_d + 1;
+            else return init_d;
+        }
+
 
         public static Texture2D Clone(this Texture2D texture, GraphicsDevice graphics)
         {
@@ -129,7 +212,7 @@ namespace MonoHelper
             return colorData;
         }
 
-        public static Texture2D DrawCircle(this Texture2D texture, Vector2 center, double radius, double width, Color color)
+        public static Texture2D DrawCircle(this Texture2D texture, Vector2 center, double radius, double width, Color color, double border_size = 1d)
         {
             Color[] colorData = new Color[texture.Width * texture.Height];
             texture.GetData(colorData);
@@ -140,8 +223,7 @@ namespace MonoHelper
                     double dist = Math.Abs(Math.Sqrt(Math.Pow(center.X - x, 2) + Math.Pow(center.Y - y, 2)) - radius);
                     if (dist <= width) 
                     {
-                        //                        colorData[x + y * texture.Width] = MixTwoColorsNA(colorData[x + y * texture.Width], new Color(color, (float)Math.Max(1d, width - dist)));
-                        colorData[x + y * texture.Width] = new Color(color, (float)Math.Min(1d, width - dist));
+                        colorData[x + y * texture.Width] = new Color(color, (float)Math.Min(border_size, width - dist));
                     }
                 }
             }
@@ -542,7 +624,7 @@ namespace MonoHelper
             texture.SetData(data);
         }
 
-        public static void FillNot(this Texture2D texture, Vector2 position, Color color_notfill, Color color_to)
+        public static void FillNot(this Texture2D texture, Vector2 position, Color color_not_to_fill, Color color_to)
         {
             Color[] data = new Color[texture.Width * texture.Height];
             texture.GetData(data);
@@ -558,7 +640,7 @@ namespace MonoHelper
                         Vector2 vnpos = new Vector2((-1 + i) % 2 + (pos % texture.Width), (i % 2) + (pos / texture.Width));
                         if (i == 3) vnpos.Y -= 2;
                         int npos = (int)(vnpos.Y * texture.Width + vnpos.X);
-                        if (vnpos.InRect(texture.Width, texture.Height) && (data[npos] != color_notfill) && (data[npos] != color_to))
+                        if (vnpos.InRect(texture.Width, texture.Height) && (data[npos] != color_not_to_fill) && (data[npos] != color_to))
                         {
                             next_target.Add(npos);
                             data[npos] = color_to;

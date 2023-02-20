@@ -31,8 +31,15 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AILib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\AILib\AILib\bin\Release\netcoreapp3.1\AILib.dll</HintPath>
+    </Reference>
     <Reference Include="MonoGame.Framework">
       <HintPath>C:\Users\dmila\.nuget\packages\monogame.framework.desktopgl\3.8.0.1641\lib\netstandard2.0\MonoGame.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="MonogameLabel">
+      <HintPath>..\..\MonogameLabel\MonogameLabel\bin\Release\netstandard2.0\MonogameLabel.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -45,6 +52,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AI5Visualizer.cs" />
+    <Compile Include="Evo0Visualiser.cs" />
     <Compile Include="Pair.cs" />
     <Compile Include="PointD.cs" />
     <Compile Include="Conversions.cs" />

@@ -91,10 +91,6 @@ namespace MonoHelper
 
         private static readonly Random random = new Random();
         private static readonly object syncLock = new object();
-        /// <summary>
-        /// Random double [0; 1]
-        /// </summary>
-        /// <returns></returns>
         public static double RandomDouble()
         {
             lock (syncLock)
@@ -387,12 +383,6 @@ namespace MonoHelper
             else return color;
         }
 
-        /// <summary>
-        /// Mixes two colors but output color didn't have A channel(only RGB)
-        /// </summary>
-        /// <param name="color"></param>
-        /// <param name="blend"></param>
-        /// <returns></returns>
         public static Color MixTwoColorsNA(Color color, Color blend)
         {
             return new Color(
@@ -565,16 +555,6 @@ namespace MonoHelper
         }
 
         public static bool InRect(this Vector2 pos, Vector2 BiggerThan, Vector2 SmallerThan)
-        {
-            return ((pos.X >= BiggerThan.X) && (pos.Y >= BiggerThan.Y) && (pos.X < SmallerThan.X) && (pos.Y < SmallerThan.Y));
-        }
-
-        public static bool InRect(this PointD pos, int width, int height)
-        {
-            return ((pos.X >= 0) && (pos.Y >= 0) && (pos.X < width) && (pos.Y < height));
-        }
-
-        public static bool InRect(this PointD pos, Vector2 BiggerThan, Vector2 SmallerThan)
         {
             return ((pos.X >= BiggerThan.X) && (pos.Y >= BiggerThan.Y) && (pos.X < SmallerThan.X) && (pos.Y < SmallerThan.Y));
         }

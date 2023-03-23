@@ -37,7 +37,7 @@ namespace MonoHelper
         internal abstract class Evo0ConnectionVisualizer
         {
             double size = 1;
-            double pos;
+            public PointD pos;
             internal AIFamilyEvo0.ConnectionFamilyEvo0 connection;
 
             public Evo0ConnectionVisualizer(AIFamilyEvo0.ConnectionFamilyEvo0 connection)
@@ -45,7 +45,7 @@ namespace MonoHelper
                 this.connection = connection;
             }
 
-            public virtual void Draw(SpriteBatch spriteBatch) { }
+            public virtual void Draw(SpriteBatch spriteBatch, Vector2 draw_position) { }
         }
 
         internal Texture2D neurontexture;
@@ -121,6 +121,8 @@ namespace MonoHelper
                         float blackkoef = Math.Min((float)((neurontexture.Width / 2 + 10) / pos.Length()), 1);
                         spriteBatch.Draw(connectiontexture, drawposition + neuronvis.pos.ToVector2(), null, Color.Black, -(float)pos.Angle(), new Vector2(0, 1), new Vector2(3, (float)(blackkoef * pos.Length())), SpriteEffects.None, 1);
                         spriteBatch.Draw(connectiontexture, drawposition + (neuronvis.pos - pos * blackkoef).ToVector2(), null, Color.Pink, -(float)pos.Angle(), new Vector2(0, 1), new Vector2(3, (float)((1-blackkoef) * pos.Length())), SpriteEffects.None, 1);
+                        convis.pos = (neuronvis.pos + neuronvisualizers[convis.connection.to_neuron].pos) / 2;
+                        convis.Draw(spriteBatch, drawposition);
                     }
                 }
             }

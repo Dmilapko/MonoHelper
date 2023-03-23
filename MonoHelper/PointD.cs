@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
@@ -23,6 +24,11 @@ namespace MonoHelper
             return new PointD(point1.X + point2.X, point1.Y + point2.Y);
         }
 
+        public static PointD operator *(PointD point1, PointD point2)
+        {
+            return new PointD(point1.X * point2.X, point1.Y * point2.Y);
+        }
+
         public static PointD operator -(PointD point1, PointD point2)
         {
             return new PointD(point1.X - point2.X, point1.Y - point2.Y);
@@ -41,6 +47,11 @@ namespace MonoHelper
         public static PointD operator /(PointD point, double divider)
         {
             return new PointD(point.X / divider, point.Y / divider);
+        }
+
+        public Vector2 ToVector2()
+        {
+            return new Vector2((float)X, (float)Y);
         }
 
         public double Angle()
@@ -64,6 +75,16 @@ namespace MonoHelper
             double l = Math.Sqrt(X * X + Y * Y);
             double d = angle + (double)Math.Atan2(X, Y);
             return new PointD(Math.Sin(d) * l, Math.Cos(d) * l);
+        }
+
+        public void Rotate(double angle)
+        {
+            this = Turn(angle);
+        }
+
+        public bool InRect(Rectangle rect)
+        {
+            return (X < rect.Right) && (X >= rect.Left) && (Y >= rect.Bottom) && (Y < rect.Top);
         }
     }
 }

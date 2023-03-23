@@ -132,7 +132,7 @@ namespace MonoHelper
         public static int RandomRound(double d)
         {
             int init_d = (int)d;
-            if (RandomDouble() > (d - init_d)) return init_d + 1;
+            if (RandomDouble() < (d - init_d)) return init_d + 1;
             else return init_d;
         }
 
@@ -169,6 +169,7 @@ namespace MonoHelper
                         if (ltc <= radius + 1)
                         {
                             colorData[index] = new Color(color, radius + 1 - (float)ltc);
+                            //colorData[index] = MixTwoColors(new Color(color, radius + 1 - (float)ltc), colorData[index]);
                         }
                         else colorData[index] = Color.Transparent;
                     }
@@ -178,6 +179,7 @@ namespace MonoHelper
             texture.SetData(colorData);
             return texture;
         }
+
         /// <summary>
         /// Creates filled circle with smooth borders
         /// </summary>
@@ -199,7 +201,7 @@ namespace MonoHelper
                         if (ltc <= radius + 1)
                         {
                             if (colorData[index] == Color.Transparent) colorData[index] = new Color(color, radius + 1 - (float)ltc);
-                            else colorData[index] = MixTwoColorsNA(new Color(color, MathHelper.Clamp((radius + 1 - (float)ltc) / Brightness(colorData[index], 1), 0, 1)), colorData[index]);
+                            else colorData[index] = MixTwoColors(new Color(color, radius + 1 - (float)ltc), colorData[index]);
                         }
                     }
                 }
@@ -376,11 +378,20 @@ namespace MonoHelper
         public static Color MixTwoColors(Color color, Color blend)
         {
             if (blend.A != 0) return new Color(
-                 (byte)MathHelper.Clamp((color.R * color.A + blend.R * blend.A) / 2f / 255f, 0, 255),
-                 (byte)MathHelper.Clamp((color.G * color.A + blend.G * blend.A) / 2f / 255f, 0, 255),
-                 (byte)MathHelper.Clamp((color.B * color.A + blend.B * blend.A) / 2f / 255f, 0, 255),
+                 (byte)MathHelper.Clamp((color.R * color.A + blend.R * blend.A) / 2f , 0, 255),
+                 (byte)MathHelper.Clamp((color.G * color.A + blend.G * blend.A) / 2f , 0, 255),
+                 (byte)MathHelper.Clamp((color.B * color.A + blend.B * blend.A) / 2f , 0, 255),
                  (byte)MathHelper.Clamp((color.A + blend.A) / 2, 0, 255));
             else return color;
+        }
+
+        public static Color MixTwoColorsA(Color color, Color blend)
+        {
+            return new Color(
+                 (color.R + blend.R) / 2f,
+                 (color.G + blend.G) / 2f,
+                 (color.B + blend.B) / 2f,
+                 (color.A + blend.A) / 2f);
         }
 
         public static Color MixTwoColorsNA(Color color, Color blend)

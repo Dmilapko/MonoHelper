@@ -50,6 +50,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AI5Visualizer.cs" />
+    <Compile Include="Animation.cs" />
+    <Compile Include="InstantAnimations.cs" />
     <Compile Include="Evo0Visualiser.cs" />
     <Compile Include="Pair.cs" />
     <Compile Include="PointD.cs" />

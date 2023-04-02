@@ -48,6 +48,14 @@ namespace MonoHelper
             }
         }
 
+        public static void Swap<T>(ref T lhs, ref T rhs)
+        {
+            T temp;
+            temp = lhs;
+            lhs = rhs;
+            rhs = temp;
+        }
+
         public static T CreateDeepCopy<T>(T objectToCopy)
         {
             using (var ms = new MemoryStream())
@@ -120,7 +128,7 @@ namespace MonoHelper
                 {
                     probabilities[i] += probabilities[i - 1];
                 }
-                double r =  random.NextDouble() * probabilities.Last();
+                double r = random.NextDouble() * probabilities.Last();
                 for (int i = 0; i < probabilities.Count; i++)
                 {
                     if (r < probabilities[i]) return i;
@@ -219,9 +227,12 @@ namespace MonoHelper
                 for (int y = 0; y < texture.Height; y++)
                 {
                     double dist = Math.Abs(Math.Sqrt(Math.Pow(center.X - x, 2) + Math.Pow(center.Y - y, 2)) - radius);
-                    if (dist <= width) 
+                    if (dist <= width)
                     {
-                        colorData[x + y * texture.Width] = new Color(color, (float)Math.Min(border_size, width - dist));
+                        float A = (float)Math.Min(border_size, width - dist);
+                        /*if (A < 1) colorData[x + y * texture.Width] = MixTwoColorsNA(colorData[x + y * texture.Width], new Color(color, A));
+                        else*/
+                        colorData[x + y * texture.Width] = new Color(color, A);
                     }
                 }
             }
@@ -378,21 +389,21 @@ namespace MonoHelper
         public static Color MixTwoColors(Color color, Color blend)
         {
             if (blend.A != 0) return new Color(
-                 (byte)MathHelper.Clamp((color.R * color.A + blend.R * blend.A) / 2f , 0, 255),
-                 (byte)MathHelper.Clamp((color.G * color.A + blend.G * blend.A) / 2f , 0, 255),
-                 (byte)MathHelper.Clamp((color.B * color.A + blend.B * blend.A) / 2f , 0, 255),
+                 (byte)MathHelper.Clamp((color.R * color.A + blend.R * blend.A) / 2f, 0, 255),
+                 (byte)MathHelper.Clamp((color.G * color.A + blend.G * blend.A) / 2f, 0, 255),
+                 (byte)MathHelper.Clamp((color.B * color.A + blend.B * blend.A) / 2f, 0, 255),
                  (byte)MathHelper.Clamp((color.A + blend.A) / 2, 0, 255));
             else return color;
         }
 
-        public static Color MixTwoColorsA(Color color, Color blend)
-        {
-            return new Color(
-                 (color.R + blend.R) / 2f,
-                 (color.G + blend.G) / 2f,
-                 (color.B + blend.B) / 2f,
-                 (color.A + blend.A) / 2f);
-        }
+        /*    public static Color MixTwoColorsA(Color color, Color blend)
+            {
+                return new Color(
+                     (color.R + blend.R) / 2f,
+                     (color.G + blend.G) / 2f,
+                     (color.B + blend.B) / 2f,
+                     (color.A + blend.A) / 2f);
+            }*/
 
         public static Color MixTwoColorsNA(Color color, Color blend)
         {
@@ -582,7 +593,7 @@ namespace MonoHelper
             texture.GetData(data);
             List<int> target = new List<int>();
             target.Add((int)(position.Y * texture.Width + position.X));
-            while (target.Count!=0)
+            while (target.Count != 0)
             {
                 List<int> next_target = new List<int>();
                 foreach (int pos in target)
@@ -590,7 +601,7 @@ namespace MonoHelper
                     for (int i = 0; i < 4; i++)
                     {
                         Vector2 vnpos = new Vector2((-1 + i) % 2 + (pos % texture.Width), (i % 2) + (pos / texture.Width));
-                        if (i == 3) vnpos.Y-=2;
+                        if (i == 3) vnpos.Y -= 2;
                         int npos = (int)(vnpos.Y * texture.Width + vnpos.X);
                         if (vnpos.InRect(texture.Width, texture.Height) && (data[npos] == color_from))
                         {
@@ -653,7 +664,7 @@ namespace MonoHelper
                 for (int y = 0; y < texture.Height; y++)
                 {
                     if (y == 0) res.Add(new List<bool>());
-                    if (true_data.Contains(cd[y*texture.Width + x]))
+                    if (true_data.Contains(cd[y * texture.Width + x]))
                     {
                         res[x].Add(true);
                     }
@@ -661,6 +672,57 @@ namespace MonoHelper
                 }
             }
             return res;
+        }
+
+        static double section(double h, double r = 1) // returns the positive root of intersection of line y = h with circle centered at the origin and radius r
+        {
+            //assert(r >= 0); // assume r is positive, leads to some simplifications in the formula below (can factor out r from the square root)
+            return (h < r) ? Math.Sqrt(r * r - h * h) : 0; // http://www.wolframalpha.com/input/?i=r+*+sin%28acos%28x+%2F+r%29%29+%3D+h
+        }
+
+        static double g(double x, double h, double r = 1) // indefinite integral of circle segment
+        {
+            return .5f * (Math.Sqrt(1 - x * x / (r * r)) * x * r + r * r * Math.Asin(x / r) - 2 * h * x); // http://www.wolframalpha.com/input/?i=r+*+sin%28acos%28x+%2F+r%29%29+-+h
+        }
+
+        static double area(double x0, double x1, double h, double r) // area of intersection of an infinitely tall box with left edge at x0, right edge at x1, bottom edge at h and top edge at infinity, with circle centered at the origin with radius r
+        {
+            if (x0 > x1)
+                MHeleper.Swap(ref x0, ref x1); // this must be sorted otherwise we get negative area
+            double s = section(h, r);
+            return g(Math.Max(-s, Math.Min(s, x1)), h, r) - g(Math.Max(-s, Math.Min(s, x0)), h, r); // integrate the area
+        }
+
+        static double area(double x0, double x1, double y0, double y1, double r) // area of the intersection of a finite box with a circle centered at the origin with radius r
+        {
+            if (y0 > y1)
+                MHeleper.Swap(ref y0, ref y1); // this will simplify the reasoning
+            if (y0 < 0)
+            {
+                if (y1 < 0)
+                    return area(x0, x1, -y0, -y1, r); // the box is completely under, just flip it above and try again
+                else
+                    return area(x0, x1, 0, -y0, r) + area(x0, x1, 0, y1, r); // the box is both above and below, divide it to two boxes and go again
+            }
+            else
+            {
+                //    assert(y1 >= 0); // y0 >= 0, which means that y1 >= 0 also (y1 >= y0) because of the swap at the beginning
+                return area(x0, x1, y0, r) - area(x0, x1, y1, r); // area of the lower box minus area of the higher box
+            }
+        }
+
+        public static double Area_of_intersection_between_circle_and_rectangle(double x0, double x1, double y0, double y1, double cx, double cy, double r) // area of the intersection of a general box with a general circle
+        {
+            x0 -= cx; x1 -= cx;
+            y0 -= cy; y1 -= cy;
+            // get rid of the circle center
+
+            return area(x0, x1, y0, y1, r);
+        }
+
+        public static double Area_of_intersection_between_circle_and_rectangle(Rectangle rect, PointD circle_center, double r) // area of the intersection of a general box with a general circle
+        {
+            return Area_of_intersection_between_circle_and_rectangle(rect.Left, rect.Right, rect.Bottom, rect.Top, circle_center.X, circle_center.Y, r);
         }
     }
 }

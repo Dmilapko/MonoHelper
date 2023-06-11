@@ -29,7 +29,7 @@ namespace MonoHelper
                 this.neuron = neuron;
             }
 
-            public virtual void Draw(SpriteBatch spriteBatch, Vector2 draw_position)
+            public virtual void Draw(SpriteBatch spriteBatch, Vector2 draw_position, Color textcolor)
             {
             }
         }
@@ -50,6 +50,7 @@ namespace MonoHelper
 
         internal Texture2D neurontexture;
         internal Texture2D connectiontexture;
+        internal Color textcolor = Color.Red, connectioncolor = Color.Pink;
         internal List<Evo0NeuronVisualizer> neuronvisualizers = new List<Evo0NeuronVisualizer>();
         public Vector2 drawposition;
 
@@ -120,7 +121,7 @@ namespace MonoHelper
                         PointD pos = neuronvis.pos - neuronvisualizers[convis.connection.to_neuron].pos;
                         float blackkoef = Math.Min((float)((neurontexture.Width / 2 + 10) / pos.Length()), 1);
                         spriteBatch.Draw(connectiontexture, drawposition + neuronvis.pos.ToVector2(), null, Color.Black, -(float)pos.Angle(), new Vector2(0, 1), new Vector2(3, (float)(blackkoef * pos.Length())), SpriteEffects.None, 1);
-                        spriteBatch.Draw(connectiontexture, drawposition + (neuronvis.pos - pos * blackkoef).ToVector2(), null, Color.Pink, -(float)pos.Angle(), new Vector2(0, 1), new Vector2(3, (float)((1-blackkoef) * pos.Length())), SpriteEffects.None, 1);
+                        spriteBatch.Draw(connectiontexture, drawposition + (neuronvis.pos - pos * blackkoef).ToVector2(), null, connectioncolor, -(float)pos.Angle(), new Vector2(0, 1), new Vector2(3, (float)((1-blackkoef) * pos.Length())), SpriteEffects.None, 1);
                         convis.pos = (neuronvis.pos + neuronvisualizers[convis.connection.to_neuron].pos) / 2;
                         convis.Draw(spriteBatch, drawposition);
                     }
@@ -131,7 +132,7 @@ namespace MonoHelper
                 if (neuronvis.neuron.alive)
                 {
                     spriteBatch.Draw(neurontexture, drawposition + neuronvis.pos.ToVector2(), null, neuronvis.color, 0f, new Vector2(neurontexture.Width / 2, neurontexture.Height / 2), 1f, SpriteEffects.None, 1);
-                    neuronvis.Draw(spriteBatch, drawposition);
+                    neuronvis.Draw(spriteBatch, drawposition, textcolor);
                 }
             }
         }

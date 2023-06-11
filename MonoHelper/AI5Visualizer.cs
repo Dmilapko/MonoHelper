@@ -29,7 +29,7 @@ namespace MonoHelper
                 this.texture_width = texture_width;
             }
 
-            public override void Draw(SpriteBatch spriteBatch, Vector2 draw_position)
+            public override void Draw(SpriteBatch spriteBatch, Vector2 draw_position, Color textcolor)
             {
                 string text = Math.Abs(Math.Round(neuron.value, 2)).ToString();
                 if (text.Count() == 1) text += ".";
@@ -41,7 +41,7 @@ namespace MonoHelper
                 float text_width = textfont.MeasureString(text).X;
                 float text_height = textfont.MeasureString(text).Y;
                 float r = (texture_width-5) / text_width;
-                spriteBatch.DrawString(textfont, text, draw_position + pos.ToVector2(), Color.Red, 0f, new Vector2(text_width / 2, text_height / 2), r, SpriteEffects.None, 1);
+                spriteBatch.DrawString(textfont, text, draw_position + pos.ToVector2(), textcolor, 0f, new Vector2(text_width / 2, text_height / 2), r, SpriteEffects.None, 1);
             }
         }
 
@@ -67,7 +67,7 @@ namespace MonoHelper
                 }
                 float text_width = textfont.MeasureString(text).X;
                 float text_height = textfont.MeasureString(text).Y;
-                spriteBatch.DrawString(textfont, text, draw_position + pos.ToVector2(), Color.Red, 0f, new Vector2(text_width / 2, text_height / 2), 1, SpriteEffects.None, 1);
+                spriteBatch.DrawString(textfont, text, draw_position + pos.ToVector2(), Color.Red, 0f, new Vector2(text_width / 2, text_height / 2), 0.5f, SpriteEffects.None, 1);
             }
         }
 
@@ -81,6 +81,20 @@ namespace MonoHelper
                     convis.textfont = textfont;
                 }
             }
+        }
+
+        public AI5Visualizer(GraphicsDevice graphicsDevice, AIFamilyEvo0 ai, int widthpx, int heightpx, SpriteFont textfont, Color textcolor, Color connectioncolor) : base(graphicsDevice, ai, widthpx, heightpx)
+        {
+            foreach (NeuronVisualizer item in neuronvisualizers)
+            {
+                item.textfont = textfont;
+                foreach (AI5ConnectionVisualizer convis in item.connectionvisualizers)
+                {
+                    convis.textfont = textfont;
+                }
+            }
+            this.textcolor= textcolor;
+            this.connectioncolor= connectioncolor;
         }
 
         public override void PreProcess()

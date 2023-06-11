@@ -10,6 +10,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using System.Linq;
 using System.Runtime.InteropServices.ComTypes;
+using System.Xml.Linq;
 
 namespace MonoHelper
 {
@@ -56,7 +57,7 @@ namespace MonoHelper
             rhs = temp;
         }
 
-        public static T CreateDeepCopy<T>(T objectToCopy)
+        public static T CreateDeepCopy<T>(this T objectToCopy)
         {
             using (var ms = new MemoryStream())
             {
@@ -64,6 +65,17 @@ namespace MonoHelper
                 formatter.Serialize(ms, objectToCopy);
                 ms.Seek(0, SeekOrigin.Begin);
                 return (T)formatter.Deserialize(ms);
+            }
+        }
+
+        public static T CreateDeepCopyXML<T>(this T objectToCopy)
+        {
+            using (var ms = new MemoryStream())
+            {
+                var xml = new XmlSerializer(objectToCopy.GetType());
+                xml.Serialize(ms, objectToCopy);
+                ms.Seek(0, SeekOrigin.Begin);
+                return (T)xml.Deserialize(ms);
             }
         }
 

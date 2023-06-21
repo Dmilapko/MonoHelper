@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Input;
 using System.IO;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace MonoHelper
 {
@@ -125,6 +126,13 @@ namespace MonoHelper
         public static System.Drawing.Color ToColor(this Color color)
         {
             return System.Drawing.Color.FromArgb(color.A, color.R, color.G, color.B);
+        }
+
+        public static Vector2 Turn(this Vector2 v, float angle)
+        {
+            double l = Math.Sqrt(v.X * v.X + v.Y * v.Y);
+            double d = angle + (double)Math.Atan2(v.X, v.Y);
+            return new PointD(Math.Sin(d) * l, Math.Cos(d) * l).ToVector2();
         }
     }
 }

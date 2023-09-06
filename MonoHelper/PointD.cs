@@ -15,6 +15,7 @@ namespace MonoHelper
     public struct PointD
     {
         public double X, Y;
+
         public PointD(double _X, double _Y)
         {
             X = _X;
